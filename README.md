@@ -6,6 +6,8 @@
 
 ![妮可 Seedance 动作预览](docs/media/nicole-seedance.png)
 
+[查看全部 27 段动态动作与介绍](#动态动作图鉴)
+
 ## 这一版有什么
 
 | 功能 | 行为 |
@@ -59,6 +61,47 @@ python tools/install_nicole_assets.py --archive /path/to/nicole-seedance-assets-
 - **数据隔离**：`run.py` 为本项目使用独立数据目录，保留内部兼容目录名 `BailongEnhanced`；不读取白龙安装目录的配置。macOS 位于 `~/Library/Application Support/HungryNicole/`，Windows 位于 `%LOCALAPPDATA%/HungryNicole/`。可用 `NICOLE_STATE_HOME` 指定其他目录。
 
 更多规则见 [饱腹度与食物](docs/PET_CARE.md)。
+
+## 动态动作图鉴
+
+以下展示当前 Seedance 素材包的全部 **27 段动画**。预览按原速播放，缩小为 200×200 的无声动态 WebP，并铺浅色背景；桌宠实际使用 720×720 透明 WebP。
+
+普通互动可从右键 → 手动动作菜单体验；工作动作随 Codex 状态联动。自动动作静音，主动互动在开启声音且 1 倍速时可播放素材音轨。预览为方便查看会重复播放，不代表桌宠会不断重复该动作。
+
+### 日常陪伴
+
+| | | |
+| :---: | :---: | :---: |
+| **待机呼吸** · `idle`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-idle.webp" width="200" height="200" alt="妮可：待机呼吸动态预览"><br>安静站立、轻轻呼吸，日常陪伴时的默认待机。 | **待机看向主人** · `idle2`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-idle2.webp" width="200" height="200" alt="妮可：待机看向主人动态预览"><br>转头看向主人，作为另一段待机表情。 | **招手打招呼** · `01`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-01.webp" width="200" height="200" alt="妮可：招手打招呼动态预览"><br>抬手招呼，向主人问好。 |
+| **灵感亮起** · `04`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-04.webp" width="200" height="200" alt="妮可：灵感亮起动态预览"><br>想到好主意时，举起手指表达灵感。 | **得意叉腰** · `05`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-05.webp" width="200" height="200" alt="妮可：得意叉腰动态预览"><br>双手叉腰，露出得意的小表情。 | **亲近贴贴** · `08`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-08.webp" width="200" height="200" alt="妮可：亲近贴贴动态预览"><br>靠近主人，温柔地撒个娇。 |
+| **害羞傲娇** · `09`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-09.webp" width="200" height="200" alt="妮可：害羞傲娇动态预览"><br>害羞地转头，又偷偷看回来。 | **小小生气** · `13`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-13.webp" width="200" height="200" alt="妮可：小小生气动态预览"><br>鼓起脸颊，表达一点点小脾气。 | **困倦打哈欠** · `14`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-14.webp" width="200" height="200" alt="妮可：困倦打哈欠动态预览"><br>打个哈欠，困了也继续陪着你。 |
+
+### 互动与小魔法
+
+| | | |
+| :---: | :---: | :---: |
+| **开心庆祝** · `18`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-18.webp" width="200" height="200" alt="妮可：开心庆祝动态预览"><br>开心庆祝，也用于 Codex 任务完成反馈。 | **猫爪印记** · `22`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-22.webp" width="200" height="200" alt="妮可：猫爪印记动态预览"><br>展示小小猫爪印记，送给主人。 | **吹出小星星** · `25`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-25.webp" width="200" height="200" alt="妮可：吹出小星星动态预览"><br>轻轻吹出星光，来一点小魔法。 |
+| **双手比心** · `20`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-20.webp" width="200" height="200" alt="妮可：双手比心动态预览"><br>在胸前比心，表达喜欢。 | **猫咪约定** · `21`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-21.webp" width="200" height="200" alt="妮可：猫咪约定动态预览"><br>拿出约定卡片，和主人作个约定。 | **收藏小宝藏** · `24`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-24.webp" width="200" height="200" alt="妮可：收藏小宝藏动态预览"><br>打开小盒子，展示珍藏的小宝藏。 |
+| **信任守护** · `26`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-26.webp" width="200" height="200" alt="妮可：信任守护动态预览"><br>温柔点头，表示自己一直陪在身边。 |  |  |
+
+### 陪你工作
+
+| | | |
+| :---: | :---: | :---: |
+| **收到任务** · `work01`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-work01.webp" width="200" height="200" alt="妮可：收到任务动态预览"><br>收到新任务，点头示意准备开始。 | **持续处理任务** · `work02`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-work02.webp" width="200" height="200" alt="妮可：持续处理任务动态预览"><br>抱着小电脑忙碌，对应执行任务。 | **整理归档** · `work03`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-work03.webp" width="200" height="200" alt="妮可：整理归档动态预览"><br>整理纸张和文件夹，对应整理、编辑或回复。 |
+| **翻阅资料** · `work04`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-work04.webp" width="200" height="200" alt="妮可：翻阅资料动态预览"><br>打开书本翻阅，对应思考、搜索和阅读。 | **放大镜检查** · `work05`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-work05.webp" width="200" height="200" alt="妮可：放大镜检查动态预览"><br>拿起放大镜检查，对应验证、测试和排查。 |  |
+
+### 桌面操作
+
+| | | |
+| :---: | :---: | :---: |
+| **悬空拖拽** · `drag`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-drag.webp" width="200" height="200" alt="妮可：悬空拖拽动态预览"><br>被拖起时悬空摆动，努力保持平衡。 | **轻轻落地** · `landing`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-landing.webp" width="200" height="200" alt="妮可：轻轻落地动态预览"><br>松开拖拽后轻轻落地，重新站稳。 | **查看额度** · `quota`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-quota.webp" width="200" height="200" alt="妮可：查看额度动态预览"><br>拿出小卡片查看，用于额度回应。 |
+
+### 饥饿与喂食
+
+| | | |
+| :---: | :---: | :---: |
+| **偷吃面包** · `17`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-17.webp" width="200" height="200" alt="妮可：偷吃面包动态预览"><br>实际喂食专用：右键 → 食物 → 面包，成功扣除库存后播放，饱腹度 +30。 | **饥饿提醒** · `hungry`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-hungry.webp" width="200" height="200" alt="妮可：饥饿提醒动态预览"><br>揉揉肚子、期待投喂的表情；目前在互动动作中，30% 饥饿提醒使用文字。 | **吃面包反馈** · `feed`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-feed.webp" width="200" height="200" alt="妮可：吃面包反馈动态预览"><br>备用吃面包反馈素材，仅展示；当前喂食功能固定使用「17 · 偷吃面包」。 |
 
 ## 素材创作
 

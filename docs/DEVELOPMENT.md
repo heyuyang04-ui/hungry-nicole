@@ -21,3 +21,9 @@ macOS 原生窗口验收包括切换其他应用、保持后台显示和不抢�
 动画与 WAV 放 GitHub Release；Git 仅保存源码、文档、静态角色预览与校验清单。不得提交参考图、原视频、密钥、任务回执、个人截图、数据库或本机配置。更新仓库固定为 `heyuyang04-ui/hungry-nicole`，不使用上游的资源发布工作流。
 
 新生成的动画必须经过逐帧机械检查和实际播放验收；不能仅凭帧数或解码成功批准视觉效果。
+
+## README 动态图鉴
+
+运行 `python tools/build_readme_gallery.py` 从已安装素材生成 `build/readme-gallery/`。脚本先核对源动画与发布清单的 SHA-256，再输出 200×200 动态 WebP、分类接触表、时长校验报告及 `gallery.md`；保留全部帧和原时长。说明中的喂食入口必须与运行时一致，`feed` 仅作备用展示。
+
+检查接触表及浏览器播放后，将 `preview-nicole-*.webp` 作为独立附件上传到 `v0.10.0-seedance` Release，并用 `gallery.md` 更新 README 的「动态动作图鉴」。不要覆盖正式素材 ZIP 或把生成动画提交到 Git。README 更新还需检查 GitHub 实际图片加载及动画播放。
