@@ -54,7 +54,7 @@ python tools/install_nicole_assets.py --archive /path/to/nicole-seedance-assets-
 
 - **一起玩游戏**：右键妮可或托盘 → 妮可陪我玩游戏，打开 https://magicneko.com/game-case 。
 - **妮可主页**：首次运行时，胶囊左侧地球按钮默认打开 https://magicneko.com/ 。已有用户可在设置中将「胶囊左侧快捷功能」选为「妮可主页」。
-- **吃饭提醒**：默认每天本地时间 11:40、17:20 显示「主人～吃饭了喵～」。在设置 → 闲聊与台词中修改午餐、晚餐时间或关闭提醒；无需开启自动台词。文字气泡显示 12 秒，不展开面板、不播放声音。需保持程序运行；隐藏、编辑或高优先级通知期间最多延后 5 分钟，超过后不补发。同一时段当天重启也不重复提醒。
+- **吃饭提醒**：默认每天本地时间 11:40、17:20 显示「主人你该吃饭了喵～」，妮可持续播放 `hungry`。未点击「我知道了～」时，每 5 秒增加一个分身，数量不限；屏幕铺满后在已有位置叠放，总数继续增长。点击确认立即清除全部分身并恢复原始妮可。分身共用动画、可穿透鼠标，提醒保持无声；未确认状态在重启后保留。可在设置 → 闲聊中改时间或关闭，隐藏/关闭提醒会清理分身，恢复后重新提醒。首次到点需程序运行；隐藏、编辑或高优先级通知期间最多延后 5 分钟，未触发且超时则不补发。
 - **食物**：右键妮可或托盘 → 食物，查看饱腹度、面包和奖励进度。只累计启用后的有效用量，不补发历史奖励；无需 API Key。
 - **声音**：设置 → 人物与动作，开启主动互动声音并使用 1 倍速。切换动作、隐藏、退出或关闭声音会停止播放；无音轨的动作保持静音。
 - **聊天**：从妮可面板进入聊天，可自行配置服务。运行桌宠、发放面包不需要生视频 API Key。
@@ -101,7 +101,7 @@ python tools/install_nicole_assets.py --archive /path/to/nicole-seedance-assets-
 
 | | | |
 | :---: | :---: | :---: |
-| **偷吃面包** · `17`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-17.webp" width="200" height="200" alt="妮可：偷吃面包动态预览"><br>实际喂食专用：右键 → 食物 → 面包，成功扣除库存后播放，饱腹度 +30。 | **饥饿提醒** · `hungry`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-hungry.webp" width="200" height="200" alt="妮可：饥饿提醒动态预览"><br>揉揉肚子、期待投喂的表情；目前在互动动作中，30% 饥饿提醒使用文字。 | **吃面包反馈** · `feed`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-feed.webp" width="200" height="200" alt="妮可：吃面包反馈动态预览"><br>备用吃面包反馈素材，仅展示；当前喂食功能固定使用「17 · 偷吃面包」。 |
+| **偷吃面包** · `17`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-17.webp" width="200" height="200" alt="妮可：偷吃面包动态预览"><br>实际喂食专用：右键 → 食物 → 面包，成功扣除库存后播放，饱腹度 +30。 | **饥饿提醒** · `hungry`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-hungry.webp" width="200" height="200" alt="妮可：饥饿提醒动态预览"><br>揉揉肚子、期待投喂；吃饭提醒期间与分身一起循环播放，直到主人确认。 | **吃面包反馈** · `feed`<br><img src="https://github.com/heyuyang04-ui/hungry-nicole/releases/download/v0.10.0-seedance/preview-nicole-feed.webp" width="200" height="200" alt="妮可：吃面包反馈动态预览"><br>备用吃面包反馈素材，仅展示；当前喂食功能固定使用「17 · 偷吃面包」。 |
 
 ## 素材创作
 

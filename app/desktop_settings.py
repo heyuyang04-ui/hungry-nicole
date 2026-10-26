@@ -189,7 +189,7 @@ class SettingsDialog(QDialog):
         chat=self.tab('闲聊与台词')
         self.section(chat,pet.character_name+'聊天服务','与 Codex 的只读联动独立；仅主动发送时调用。')
         button=QPushButton('配置'+pet.character_name+'聊天服务…');button.clicked.connect(pet.open_chat_service);chat.addRow(button)
-        self.section(chat,'吃饭提醒','按电脑本地时间，每个时段每天提醒一次：主人～吃饭了喵～')
+        self.section(chat,'吃饭提醒','按电脑本地时间提醒：主人你该吃饭了喵～。未确认时每 5 秒增加一个分身，点击「我知道了～」结束。')
         self.check(chat,'meal_reminders','启用每日吃饭提醒')
         for key,title in [('meal_lunch_time','午餐时间'),('meal_dinner_time','晚餐时间')]:
             widget=QTimeEdit();widget.setDisplayFormat('HH:mm');widget.setAccessibleName(title)

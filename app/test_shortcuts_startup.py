@@ -62,6 +62,23 @@ class ShortcutTests(unittest.TestCase):
         self.assertEqual(saved['meal_lunch_time'],'12:15');self.assertEqual(saved['meal_dinner_time'],'18:30')
         s.fields['meal_reminders'].setChecked(False);s.apply()
         self.assertFalse(self.pet.settings['meal_reminders']);self.assertFalse(s.fields['meal_lunch_time'].isEnabled())
+    def test_meal_action_repeats_hungry_and_ack_restores_single_pet(self):
+        from datetime import datetime
+        from PySide6.QtCore import Qt
+        from PySide6.QtTest import QTest
+        pet=self.pet;pet.status_hold=0
+        pet.update_meal_reminders(datetime(2026,10,26,11,40,10))
+        self.assertTrue(pet.meal_active());self.assertEqual(pet.current['id'],'hungry')
+        notice=pet.meal_notice;notice.copy_once();notice.copy_once()
+        self.assertFalse(pet.play(pet.manifest['idle'],'idle'))
+        with self.assertRaises(ValueError):pet.switch_character('builtin')
+        with patch.object(pet.player,'advance',return_value=(None,True)),patch.object(pet,'play',wraps=pet.play) as play:
+            pet._animate_frame();self.assertEqual(play.call_args.args[0]['id'],'hungry')
+        with patch.object(pet.care,'update') as update:
+            pet.update_care(feed=True);update.assert_not_called()
+        QTest.mouseClick(notice.confirm,Qt.MouseButton.LeftButton);settle(pet)
+        self.assertFalse(pet.meal_active());self.assertIn(pet.current['id'],('idle','idle2'))
+        self.assertEqual(notice.clones.count,0);self.assertFalse(pet.meal_reminder.pending)
     def test_settings_draft_validates_url_and_reloads_saved_choice(self):
         self.pet.open_settings();settle(self.pet);s=self.pet.settings_dialog
         s.shortcut.setCurrentIndex(s.shortcut.findData('website'));s.website.setText('file:///C:/Windows/cmd.exe');s.apply()

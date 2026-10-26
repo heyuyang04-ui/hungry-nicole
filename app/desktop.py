@@ -127,23 +127,49 @@ class DesktopPet(EnhancedPet):
         self.update_care()
 
     def update_meal_reminders(self,now=None):
-        visible=not self._desktop_hidden and not self._video_yielded and (self.isVisible() or self.bubble.isVisible())
+        visible=not self._desktop_hidden and not self._video_yielded and self.isVisible()
         if not self.settings.get('meal_reminders',True) or not visible:
-            if self.meal_notice:self.meal_notice.hide()
+            if self.meal_notice:self.meal_notice.stop(restore=visible)
             return
+        if self.meal_notice and self.meal_notice.active:return
         # Leave editors and completion reminders undisturbed; retry within five minutes.
         available=self.bubble.panel_page=='status' and not (time.monotonic()<self.status_hold and getattr(self,'message_priority',0)>3)
         if not available:return
         from meal_reminders import MealReminders
         try:
             if self.meal_reminder is None:self.meal_reminder=MealReminders(STATE_DIR/'meal-reminders.sqlite3')
-            if not self.meal_reminder.claim(self.settings,now=now):return
+            if not self.meal_reminder.pending and not self.meal_reminder.claim(self.settings,now=now):return
         except (OSError,sqlite3.Error):return
         from meal_notice import MealNotice
         if self.meal_notice is None:self.meal_notice=MealNotice(self)
         self.meal_notice.present()
 
+    def meal_active(self):
+        notice=getattr(self,'meal_notice',None)
+        return bool(notice and notice.active)
+
+    def start_meal_animation(self):
+        item=next((item for item in all_items(self.manifest) if item['id']=='hungry'),None)
+        if not item:return False
+        self.stop_walk();self.throwing=False;self.cancel_pointer();self.gate.state='idle'
+        return self.play(item,'idle')
+
+    def finish_meal_animation(self):
+        self.gate.state='idle'
+        if self.isVisible():self.idle()
+
+    def acknowledge_meal_reminder(self):
+        try:
+            if self.meal_reminder:self.meal_reminder.acknowledge()
+        except (OSError,sqlite3.Error):return False
+        return True
+
+    def update_frame(self):
+        super().update_frame()
+        if self.meal_active():self.meal_notice.clones.refresh_frame()
+
     def update_care(self,snapshot=None,feed=False):
+        if feed and self.meal_active():return
         try:
             if self.care is None:self.care=PetCare(STATE_DIR/'pet-care.sqlite3')
             if self.activity:self.activity.token_index.reward_since=self.care.reward_since
@@ -180,7 +206,8 @@ class DesktopPet(EnhancedPet):
             food.addAction(f"饱腹度：{state['fullness']}%").setEnabled(False)
             if state['fullness']<=30:food.addAction(HUNGRY_MESSAGE).setEnabled(False)
             bread=food.addAction(f"面包 × {state['bread']}（喂食 +30%）")
-            bread.setObjectName('feed_bread');bread.setEnabled(state['bread']>0 and state['fullness']<100)
+            bread.setObjectName('feed_bread');bread.setEnabled(state['bread']>0 and state['fullness']<100 and not self.meal_active())
+            if self.meal_active():food.addAction('请先点击吃饭提醒的「我知道了～」').setEnabled(False)
             bread.triggered.connect(lambda checked=False:self.update_care(feed=True))
             food.addSeparator()
             progress=(f"下个面包：{state['remainder']:,} / {TOKENS_PER_BREAD:,} token"
@@ -210,6 +237,7 @@ class DesktopPet(EnhancedPet):
         return checked(self.asset_root,name)
 
     def play(self,item,mode):
+        if self.meal_active() and item.get('id')!='hungry':return False
         if item.get('id') in ('17','feed') and not getattr(self,'_feeding_bread',False):return False
         if self._visibility_ready and (self._desktop_hidden or not self.settings.get('character_visible',True)):return False
         if self._interactive_action and mode=='variant':mode='click'
@@ -259,7 +287,7 @@ class DesktopPet(EnhancedPet):
     def schedule_animation(self):
         self.schedule_movement()
         if not hasattr(self,'tick') or not self.tick.isActive() or not self.player:return
-        speed=self.settings.get('playback_speed',1)*self.sustained.speed_factor(self.player)
+        speed=1 if self.meal_active() else self.settings.get('playback_speed',1)*self.sustained.speed_factor(self.player)
         interval=self.player.next_delay_ms(speed)
         if self.press_feedback and time.monotonic()-self.press_feedback<.5:interval=min(16,interval)
         self.tick.setInterval(interval)
@@ -267,6 +295,15 @@ class DesktopPet(EnhancedPet):
     def _animate_frame(self):
         if self.player is None or not self.current:return
         if getattr(self,'_visibility_ready',False) and (self._desktop_hidden or not self.settings.get('character_visible',True)):return
+        if self.meal_active():
+            frame,ended=self.player.advance(self.frame_size,1)
+            if frame is not None:
+                self.frames=[frame];self.index=0;self._hit_image=frame.toImage();self.update_frame()
+            if ended:
+                if self.player.error:self.meal_notice.stop()
+                else:
+                    self.gate.state='idle';self.play(self.current,'idle')
+            return
         now=time.monotonic()
         desired=self.continuous.target(self.reactions,now,self.status_animation_allowed())
         was_sustained=self.sustained.active
@@ -303,7 +340,7 @@ class DesktopPet(EnhancedPet):
             self.idle()
 
     def status_animation_allowed(self):
-        return self.isVisible() and self.settings.get('status_actions',True) and not (self.dragging or self.throwing or self.walking)
+        return not self.meal_active() and self.isVisible() and self.settings.get('status_actions',True) and not (self.dragging or self.throwing or self.walking)
 
     def play_status_reaction(self,now):
         if self.gate.state!='idle' or not self.status_animation_allowed() or not self.player or not self.player.ended:return False
@@ -438,6 +475,7 @@ class DesktopPet(EnhancedPet):
             (area.x(),area.y(),area.width(),area.height()),screen.name())
 
     def start_walk(self):
+        if self.meal_active():return
         if (not self.settings.get('panel_detached') and ((self.bubble.report and self.bubble.report.requested) or self.bubble.panel_page!='status')) or self.settings.get('no_move') or self.dragging or self.throwing or self.gate.state not in ('idle','walk'):return
         screen=QApplication.screenAt(self.frameGeometry().center()) or QApplication.primaryScreen();area=screen.availableGeometry()
         home=self.settings.get('wander_home')
@@ -605,6 +643,7 @@ class DesktopPet(EnhancedPet):
             self._codex_exit_gate.reset()
         old_size=self.height();foot=self.geometry().bottom()+1;center=self.geometry().center().x()
         self.settings.update(values);self.settings=normalized(self.settings)
+        if self.meal_notice and not self.settings.get('meal_reminders',True):self.meal_notice.stop()
         if 'card_anchor' in values:self._card_anchor=copy.deepcopy(self.settings.get('card_anchor'))
         if (self.settings['no_move'] or self.settings['mouse_through'] or
             self.settings['scale']!=previous.get('scale') or self.settings['on_top']!=previous.get('on_top')):
@@ -650,6 +689,7 @@ class DesktopPet(EnhancedPet):
             except (OSError,ValueError):
                 self.settings=previous;self._card_anchor=copy.deepcopy(previous.get('card_anchor'));self.apply_settings({},save=False);raise
         changed={key:copy.deepcopy(value) for key,value in self.settings.items() if previous.get(key)!=value}
+        if self.meal_notice and 'on_top' in changed:self.meal_notice.sync_flags()
         if changed:
             self.settings_revision+=1;self.settingsChanged.emit(changed)
 
@@ -724,6 +764,7 @@ class DesktopPet(EnhancedPet):
         if not self._desktop_hidden and (self.bubble.enabled or self.bubble.panel_page!='status'):
             self.bubble.show();self.position_bubble()
         else:self.bubble.hide()
+        if self.meal_notice and (not character or self._video_yielded):self.meal_notice.stop(restore=False)
     def remember_card_anchor(self,rect):
         screen=QApplication.screenAt(rect.center()) or QApplication.primaryScreen();a=screen.availableGeometry()
         self._card_anchor=dict(screen=screen.name(),rx=(rect.center().x()-a.left())/max(1,a.width()),bottom=(rect.bottom()+1-a.top())/max(1,a.height()))
@@ -945,6 +986,7 @@ class DesktopPet(EnhancedPet):
         return choices
     def switch_character(self,key):
         if not key:return
+        if self.meal_active():raise ValueError('请先点击吃饭提醒的「我知道了～」，再切换角色。')
         if self._pending_material:raise ValueError('画质切换正在等待动作结束，请稍后切换角色')
         if key=='builtin':root=self.material_store.root
         else:

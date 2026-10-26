@@ -63,6 +63,25 @@ class MealReminderTests(unittest.TestCase):
             self.assertEqual(settings['meal_dinner_time'], '17:20')
             self.assertFalse(settings['sound'])
 
+    def test_unacknowledged_reminder_survives_restart_until_confirmed(self):
+        self.reminders.claim(self.settings,self.at(11,40))
+        restarted=MealReminders(self.path)
+        self.assertTrue(restarted.pending)
+        restarted.acknowledge()
+        self.assertFalse(restarted.pending);self.assertFalse(MealReminders(self.path).pending)
+        self.assertFalse(restarted.claim(self.settings,self.at(11,41)))
+        self.assertTrue(restarted.claim(self.settings,self.at(17,20)))
+
+    def test_upgrade_does_not_replay_previously_delivered_one_shot_reminders(self):
+        import sqlite3
+        legacy=Path(self.tmp.name)/'legacy.sqlite3'
+        with sqlite3.connect(legacy) as db:
+            db.execute('CREATE TABLE delivered(day TEXT,slot TEXT,PRIMARY KEY(day,slot))')
+            db.execute("INSERT INTO delivered VALUES('2026-10-26','meal_lunch_time')")
+        reminder=MealReminders(legacy)
+        self.assertFalse(reminder.pending)
+        self.assertFalse(reminder.claim(self.settings,self.at(11,40)))
+
 
 if __name__ == '__main__':
     unittest.main()

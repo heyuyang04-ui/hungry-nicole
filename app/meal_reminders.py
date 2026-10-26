@@ -5,7 +5,7 @@ from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 
-MEAL_MESSAGE = '主人～吃饭了喵～'
+MEAL_MESSAGE = '主人你该吃饭了喵～'
 MEAL_TIMES = {'meal_lunch_time': '11:40', 'meal_dinner_time': '17:20'}
 GRACE_SECONDS = 300
 
@@ -20,7 +20,11 @@ class MealReminders:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with closing(self.connect()) as db, db:
             db.execute('CREATE TABLE IF NOT EXISTS delivered (day TEXT, slot TEXT, PRIMARY KEY(day, slot))')
+            if 'acknowledged' not in {row[1] for row in db.execute('PRAGMA table_info(delivered)')}:
+                # Old one-shot reminders are already completed; do not replay them.
+                db.execute('ALTER TABLE delivered ADD COLUMN acknowledged INTEGER NOT NULL DEFAULT 1')
             self.delivered = set(db.execute('SELECT day, slot FROM delivered'))
+            self.pending = bool(db.execute('SELECT 1 FROM delivered WHERE acknowledged=0 LIMIT 1').fetchone())
 
     def connect(self):
         return sqlite3.connect(self.path, timeout=0.05)
@@ -43,7 +47,13 @@ class MealReminders:
             return False  # No disk access on ordinary timer ticks.
         with closing(self.connect()) as db, db:
             before = db.total_changes
-            db.executemany('INSERT OR IGNORE INTO delivered VALUES (?,?)', due)
+            db.executemany('INSERT OR IGNORE INTO delivered(day,slot,acknowledged) VALUES (?,?,0)', due)
             claimed = db.total_changes > before
         self.delivered.update(due)
+        if claimed:self.pending = True
         return claimed
+
+    def acknowledge(self):
+        with closing(self.connect()) as db, db:
+            db.execute('UPDATE delivered SET acknowledged=1 WHERE acknowledged=0')
+        self.pending = False
