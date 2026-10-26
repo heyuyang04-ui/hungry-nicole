@@ -23,8 +23,14 @@ class MealReminders:
             if 'acknowledged' not in {row[1] for row in db.execute('PRAGMA table_info(delivered)')}:
                 # Old one-shot reminders are already completed; do not replay them.
                 db.execute('ALTER TABLE delivered ADD COLUMN acknowledged INTEGER NOT NULL DEFAULT 1')
-            self.delivered = set(db.execute('SELECT day, slot FROM delivered'))
-            self.pending = bool(db.execute('SELECT 1 FROM delivered WHERE acknowledged=0 LIMIT 1').fetchone())
+            db.execute('CREATE TABLE IF NOT EXISTS meal_deliveries ('
+                       'day TEXT, slot TEXT, scheduled TEXT, acknowledged INTEGER NOT NULL, '
+                       'PRIMARY KEY(day,slot,scheduled))')
+            # Legacy rows never recorded the scheduled time. Preserve their
+            # pending state/history without claiming they belong to a new time.
+            db.execute("INSERT OR IGNORE INTO meal_deliveries SELECT day,slot,'',acknowledged FROM delivered")
+            self.delivered = set(db.execute('SELECT day, slot, scheduled FROM meal_deliveries'))
+            self.pending = bool(db.execute('SELECT 1 FROM meal_deliveries WHERE acknowledged=0 LIMIT 1').fetchone())
 
     def connect(self):
         return sqlite3.connect(self.path, timeout=0.05)
@@ -41,13 +47,13 @@ class MealReminders:
                 value = default
             hour, minute = map(int, value.split(':'))
             scheduled = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-            if 0 <= (now - scheduled).total_seconds() < GRACE_SECONDS and (day, slot) not in self.delivered:
-                due.append((day, slot))
+            if 0 <= (now - scheduled).total_seconds() < GRACE_SECONDS and (day, slot, value) not in self.delivered:
+                due.append((day, slot, value))
         if not due:
             return False  # No disk access on ordinary timer ticks.
         with closing(self.connect()) as db, db:
             before = db.total_changes
-            db.executemany('INSERT OR IGNORE INTO delivered(day,slot,acknowledged) VALUES (?,?,0)', due)
+            db.executemany('INSERT OR IGNORE INTO meal_deliveries(day,slot,scheduled,acknowledged) VALUES (?,?,?,0)', due)
             claimed = db.total_changes > before
         self.delivered.update(due)
         if claimed:self.pending = True
@@ -55,5 +61,5 @@ class MealReminders:
 
     def acknowledge(self):
         with closing(self.connect()) as db, db:
-            db.execute('UPDATE delivered SET acknowledged=1 WHERE acknowledged=0')
+            db.execute('UPDATE meal_deliveries SET acknowledged=1 WHERE acknowledged=0')
         self.pending = False

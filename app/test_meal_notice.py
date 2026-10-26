@@ -33,7 +33,7 @@ class MealNoticeTests(unittest.TestCase):
         size=self.pet.bubble.size();self.notice.present();APP.processEvents()
         self.assertEqual(self.notice.label.text(),MEAL_MESSAGE)
         self.assertTrue(self.notice.active);self.assertTrue(self.notice.timer.isActive())
-        self.assertEqual(self.notice.timer.interval(),5000);self.assertFalse(self.notice.timer.isSingleShot())
+        self.assertEqual(self.notice.timer.interval(),3000);self.assertFalse(self.notice.timer.isSingleShot())
         self.assertEqual(self.pet.bubble.size(),size);self.assertTrue(self.pet.bubble.is_island())
         self.assertTrue(self.notice.windowHandle().flags() & Qt.WindowType.WindowDoesNotAcceptFocus)
         self.assertFalse(self.notice.windowHandle().flags() & Qt.WindowType.WindowTransparentForInput)
@@ -53,9 +53,19 @@ class MealNoticeTests(unittest.TestCase):
         surface.count=10**6
         self.notice.copy_once()
         self.assertIs(self.notice.clones,surface);self.assertEqual(surface.count,10**6+1)
-        self.assertEqual(len(surface.slots),slots)
+        self.assertEqual(len(surface.slots),surface.capacity)
         self.assertIn(str(10**6+2),self.notice.count_label.text())
         self.pet.start_meal_animation.assert_called_once()
+
+    def test_positions_are_random_coordinates_not_grid_cells(self):
+        import random
+        self.notice.clones.rng=random.Random(123)
+        self.notice.present()
+        for _ in range(4):self.notice.copy_once()
+        surface=self.notice.clones
+        self.assertTrue(any(rect.x()%self.pet.width()!=0 for rect in surface.slots))
+        self.assertTrue(all(surface.rect().contains(rect) for rect in surface.slots))
+        self.assertTrue(all(not rect.intersects(surface.reserved) for rect in surface.slots))
 
     def test_moving_preserves_reminder_and_hiding_stops_without_acknowledging(self):
         self.notice.present();self.notice.copy_once()

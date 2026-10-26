@@ -41,10 +41,14 @@ class MealReminderTests(unittest.TestCase):
         self.assertFalse(self.reminders.claim(self.settings, self.at(11, 40)))
         self.assertTrue(self.reminders.claim(self.settings, self.at(0, 0, 27)))
 
-    def test_editing_delivered_slot_or_clock_rollback_does_not_repeat(self):
+    def test_new_time_rearms_slot_but_returning_to_delivered_time_does_not_repeat(self):
         self.assertTrue(self.reminders.claim(self.settings, self.at(11, 40)))
+        self.reminders.acknowledge()
         self.settings['meal_lunch_time'] = '11:42'
-        self.assertFalse(self.reminders.claim(self.settings, self.at(11, 42)))
+        self.assertTrue(self.reminders.claim(self.settings, self.at(11, 42)))
+        self.reminders.acknowledge()
+        self.reminders=MealReminders(self.path)
+        self.assertFalse(self.reminders.claim(self.settings,self.at(11,42)))
         self.settings['meal_lunch_time'] = '11:40'
         self.assertFalse(self.reminders.claim(self.settings, self.at(11, 40)))
 
@@ -80,7 +84,18 @@ class MealReminderTests(unittest.TestCase):
             db.execute("INSERT INTO delivered VALUES('2026-10-26','meal_lunch_time')")
         reminder=MealReminders(legacy)
         self.assertFalse(reminder.pending)
-        self.assertFalse(reminder.claim(self.settings,self.at(11,40)))
+        self.assertFalse(reminder.claim(self.settings,self.at(12,0)))
+        self.settings['meal_lunch_time']='20:57'
+        self.assertTrue(reminder.claim(self.settings,self.at(20,57)))
+
+    def test_legacy_pending_migrates_once_and_ack_survives_restart(self):
+        import sqlite3
+        legacy=Path(self.tmp.name)/'pending.sqlite3'
+        with sqlite3.connect(legacy) as db:
+            db.execute('CREATE TABLE delivered(day TEXT,slot TEXT,acknowledged INTEGER,PRIMARY KEY(day,slot))')
+            db.execute("INSERT INTO delivered VALUES('2026-10-26','meal_dinner_time',0)")
+        reminder=MealReminders(legacy);self.assertTrue(reminder.pending)
+        reminder.acknowledge();self.assertFalse(MealReminders(legacy).pending)
 
 
 if __name__ == '__main__':

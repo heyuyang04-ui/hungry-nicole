@@ -1,10 +1,13 @@
 """Acknowledged meal reminder with one shared, click-through clone surface."""
+import random
 from PySide6.QtCore import Qt, QTimer, QEvent, QPoint, QRect, QRectF
 from PySide6.QtGui import QColor, QPainter, QPixmap, QRegion
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout
 from typography import ui_font
 from ui_theme import SURFACE, INK, BORDER, PRIMARY, ON_PRIMARY
 from meal_reminders import MEAL_MESSAGE
+
+COPY_INTERVAL_MS = 3000
 
 
 def passive_flags(on_top, click_through=False):
@@ -37,6 +40,8 @@ class MealClones(QWidget):
         self.notice = notice
         self.count = 0
         self.slots = []
+        self.capacity = 1
+        self.rng = random.Random()
         self.frame = QPixmap()
         self.region = QRegion()
         self.setWindowTitle('妮可吃饭提醒分身')
@@ -46,19 +51,29 @@ class MealClones(QWidget):
         area = screen.availableGeometry()
         self.setGeometry(area)
         w, h = min(self.pet.width(), area.width()), min(self.pet.height(), area.height())
-        origin = self.pet.frameGeometry().translated(-area.topLeft())
-        reserved = self.notice.frameGeometry().translated(-area.topLeft())
-        candidates = [QRect(x, y, w, h)
-                      for y in range(max(0, area.height() - h), -1, -max(1, h))
-                      for x in range(0, max(1, area.width() - w + 1), max(1, w))]
-        candidates.sort(key=lambda rect: (rect.center() - origin.center()).manhattanLength())
-        self.slots = [rect for rect in candidates if not rect.intersects(origin) and not rect.intersects(reserved)]
-        if not self.slots:
-            # Tiny screens may need overlapping pets, but keep the button clear.
-            self.slots = sorted(candidates,key=lambda rect:rect.intersected(reserved).width()*rect.intersected(reserved).height())[:1]
+        self.sprite_size = (w,h)
+        self.origin = self.pet.frameGeometry().translated(-area.topLeft())
+        self.reserved = self.notice.frameGeometry().translated(-area.topLeft())
+        self.capacity = max(1,(area.width()//max(1,w))*(area.height()//max(1,h))-2)
+        # Keep existing copies stationary when possible; new copies use fresh
+        # random coordinates, never a shuffled grid of predetermined locations.
+        self.slots = [rect if self.rect().contains(rect) and not rect.intersects(self.reserved)
+                      else self.random_position() for rect in self.slots[:self.capacity]]
         self.refresh_region()
 
+    def random_position(self):
+        w,h=self.sprite_size
+        candidates=[QRect(self.rng.randint(0,max(0,self.width()-w)),
+                          self.rng.randint(0,max(0,self.height()-h)),w,h) for _ in range(64)]
+        for rect in candidates:
+            if not rect.intersects(self.reserved) and not rect.intersects(self.origin):return rect
+        def overlap(rect):
+            a=rect.intersected(self.reserved);b=rect.intersected(self.origin)
+            return max(0,a.width())*max(0,a.height())*10+max(0,b.width())*max(0,b.height())
+        return min(candidates,key=overlap)
+
     def refresh_region(self):
+        while len(self.slots)<min(self.count,self.capacity):self.slots.append(self.random_position())
         self.region = QRegion()
         for rect in self.slots[:min(self.count, len(self.slots))]:
             self.region |= QRegion(rect)
@@ -66,6 +81,9 @@ class MealClones(QWidget):
 
     def copy_once(self):
         self.count += 1
+        if len(self.slots)>=self.capacity:
+            # Once the screen is full, stack over a randomly chosen position.
+            self.slots.append(self.slots.pop(self.rng.randrange(len(self.slots))))
         self.refresh_region()
         if not self.isVisible():
             self.show()
@@ -132,7 +150,7 @@ class MealNotice(QWidget):
             layout.addWidget(widget)
         self.timer = QTimer(self)
         self.timer.setTimerType(Qt.TimerType.PreciseTimer)
-        self.timer.setInterval(5000)
+        self.timer.setInterval(COPY_INTERVAL_MS)
         self.timer.timeout.connect(self.copy_once)
         pet.installEventFilter(self)
         pet.bubble.installEventFilter(self)
@@ -168,7 +186,7 @@ class MealNotice(QWidget):
             if visible:widget.show()
 
     def update_count(self):
-        self.count_label.setText(f'妮可 × {self.clones.count + 1}，每 5 秒增加一个分身')
+        self.count_label.setText(f'妮可 × {self.clones.count + 1}，每 3 秒增加一个分身')
 
     def reposition(self):
         anchor = self.pet.bubble if self.pet.bubble.isVisible() else self.pet
